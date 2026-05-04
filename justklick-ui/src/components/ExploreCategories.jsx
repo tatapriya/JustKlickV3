@@ -44,7 +44,7 @@ export default function ExploreCategories() {
   const navigate = useNavigate();
 
   return (
-    <section className="bg-[#f7f8fc] py-20">
+    <section id="explore-categories-section" className="bg-[#f7f8fc] py-20">
       <div className="mx-auto max-w-[1350px] px-8 text-center">
         <h2 className="text-[36px] font-extrabold text-[#0b1f4d]">
           Explore by Category

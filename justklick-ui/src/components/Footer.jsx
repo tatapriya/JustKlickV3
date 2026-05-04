@@ -84,17 +84,14 @@ export default function Footer() {
   ];
 
   const legalLinks = [
-    {
-      label: "Privacy Policy",
-      path: "/privacy-policy",
-    },
+
     {
       label: "Terms & Conditions",
-      path: "/terms",
+      path: "/privacy-policy#terms-and-conditions",
     },
     {
       label: "Student Help",
-      path: "/student-help",
+      path: "/contact",
     },
   ];
 
@@ -157,10 +154,10 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Main Footer */}
+      {/* MAIN FOOTER */}
       <div className="mx-auto max-w-7xl px-6 pb-6 pt-14">
         <div className="mb-10 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
+          {/* BRAND */}
           <div>
             <Link to="/" className="inline-block">
               <h1 className="text-3xl font-extrabold tracking-tight">
@@ -175,7 +172,6 @@ export default function Footer() {
               Telangana.
             </p>
 
-            {/* Social Icons */}
             <div className="mt-5 flex flex-wrap gap-3">
               {socialLinks.map((item) => (
                 <a
@@ -193,7 +189,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* For Students */}
+          {/* FOR STUDENTS */}
           <div>
             <h3 className="mb-4 text-lg font-bold">For Students</h3>
 
@@ -212,7 +208,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Student Support */}
+          {/* STUDENT SUPPORT */}
           <div>
             <h3 className="mb-4 text-lg font-bold">Student Support</h3>
 
@@ -243,7 +239,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Contact */}
+          {/* CONTACT */}
           <div>
             <h3 className="mb-4 text-lg font-bold">Contact Us</h3>
 
@@ -285,7 +281,7 @@ export default function Footer() {
             </ul>
 
             <Link
-              to="/student-help"
+              to="/contact"
               className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-gray-200 transition hover:border-[#ef233c] hover:bg-[#ef233c] hover:text-white"
             >
               <HelpCircle size={15} />
@@ -294,7 +290,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Legal + Quick Links */}
+        {/* LEGAL + QUICK LINKS */}
         <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-5 py-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <p className="text-sm font-bold text-white">Important Links</p>
@@ -302,7 +298,7 @@ export default function Footer() {
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-300">
               {legalLinks.map((item) => (
                 <Link
-                  key={item.path}
+                  key={`${item.label}-${item.path}`}
                   to={item.path}
                   className="transition hover:text-white"
                 >
@@ -317,7 +313,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom */}
+        {/* BOTTOM */}
         <div className="flex flex-col items-center justify-between border-t border-white/10 pt-5 text-sm text-gray-300 md:flex-row">
           <p>© 2026 JustKlick. All rights reserved.</p>
 

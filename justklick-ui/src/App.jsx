@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import FloatingSideButtons from "./components/FloatingSideButtons";
 
 import Home from "./pages/Home";
 import CategoryListingPage from "./pages/CategoryListingPage";
@@ -11,6 +12,11 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Enquiry from "./pages/Enquiry";
+import ContactPage from "./pages/ContactPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ComparePage from "./pages/ComparePage";
+import DownloadApp from "./pages/DownloadApp";
+
 import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
@@ -18,6 +24,9 @@ export default function App() {
     <>
       <Navbar />
       <ScrollToTop />
+
+      {/* Right side student action buttons */}
+      <FloatingSideButtons />
 
       <main className="min-h-screen">
         <Routes>
@@ -42,6 +51,12 @@ export default function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/compare" element={<ComparePage />} />
+          <Route path="/download-app" element={<DownloadApp />} />
+          
+
         </Routes>
       </main>
 
