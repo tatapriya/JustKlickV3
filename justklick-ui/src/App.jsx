@@ -16,6 +16,7 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ComparePage from "./pages/ComparePage";
 import DownloadApp from "./pages/DownloadApp";
+import About from "./pages/About";
 
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -55,6 +56,8 @@ export default function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/download-app" element={<DownloadApp />} />
+          <Route path="/about" element={<About />} />
+
           
 
         </Routes>

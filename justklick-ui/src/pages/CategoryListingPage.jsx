@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { categoryData } from "../data/categoryData";
 
 const ratings = ["4.5 above", "4.0 above", "3.5 above"];
@@ -49,8 +49,47 @@ const categoryTitles = {
   },
 };
 
+const normalize = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .trim();
+
+const categorySearchAliases = {
+  colleges: ["college", "colleges"],
+  hostels: ["hostel", "hostels", "pg", "room", "rooms"],
+  "overseas-education": [
+    "overseas",
+    "overseas education",
+    "abroad",
+    "study abroad",
+    "visa",
+    "ielts",
+  ],
+  "training-institutes": [
+    "software",
+    "software training",
+    "training",
+    "course",
+    "courses",
+    "python",
+    "java",
+    "react",
+    "full stack",
+    "frontend",
+    "backend",
+  ],
+  "career-guidance": [
+    "career",
+    "career guidance",
+    "counselling",
+    "counseling",
+  ],
+  exams: ["exam", "exams", "competitive", "coaching"],
+};
+
 export default function CategoryListingPage() {
   const { categorySlug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const routeSlug = categorySlug || "colleges";
   const dataKey = slugAliases[routeSlug] || routeSlug;
@@ -65,7 +104,11 @@ export default function CategoryListingPage() {
   const data = categoryData?.[dataKey] || [];
   const isOverseas = dataKey === "overseas-education";
 
-  const [search, setSearch] = useState("");
+  const urlSearch = searchParams.get("search") || "";
+  const urlLocation = searchParams.get("location") || "";
+
+  const [search, setSearch] = useState(urlSearch);
+  const [manualLocation, setManualLocation] = useState(urlLocation);
   const [selectedCities, setSelectedCities] = useState([]);
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [selectedMainFilters, setSelectedMainFilters] = useState([]);
@@ -77,7 +120,8 @@ export default function CategoryListingPage() {
   const perPage = 4;
 
   useEffect(() => {
-    setSearch("");
+    setSearch(urlSearch);
+    setManualLocation(urlLocation);
     setSelectedCities([]);
     setSelectedLocations([]);
     setSelectedMainFilters([]);
@@ -85,7 +129,49 @@ export default function CategoryListingPage() {
     setSortBy("popularity");
     setFeeRange(pageInfo.feeMax);
     setPage(1);
-  }, [dataKey, pageInfo.feeMax]);
+  }, [dataKey, pageInfo.feeMax, urlSearch, urlLocation]);
+
+  useEffect(() => {
+    if (!urlLocation || normalize(urlLocation) === "near me") {
+      return;
+    }
+
+    const value = normalize(urlLocation);
+
+    if (isOverseas) {
+      const matchedCountry = data.find((item) =>
+        normalize(item.category).includes(value)
+      );
+
+      if (matchedCountry) {
+        setSelectedMainFilters([matchedCountry.category]);
+      }
+
+      setPage(1);
+      return;
+    }
+
+    const matchedCity = data.find((item) =>
+      normalize(item.city).includes(value)
+    );
+
+    if (matchedCity) {
+      setSelectedCities([matchedCity.city]);
+      setSelectedLocations([]);
+      setPage(1);
+      return;
+    }
+
+    const matchedArea = data.find((item) =>
+      normalize(item.location).includes(value)
+    );
+
+    if (matchedArea) {
+      setSelectedCities([matchedArea.city]);
+      setSelectedLocations([matchedArea.location]);
+      setPage(1);
+    }
+  }, [urlLocation, data, isOverseas]);
 
   const cities = useMemo(() => {
     if (isOverseas) return [];
@@ -113,6 +199,20 @@ export default function CategoryListingPage() {
     return [...new Set(data.map((item) => item.category).filter(Boolean))];
   }, [data]);
 
+  const updateUrl = (nextSearch = search, nextLocation = manualLocation) => {
+    const params = new URLSearchParams();
+
+    if (nextSearch.trim()) {
+      params.set("search", nextSearch.trim());
+    }
+
+    if (nextLocation.trim()) {
+      params.set("location", nextLocation.trim());
+    }
+
+    setSearchParams(params);
+  };
+
   const toggleFilter = (value, selected, setter) => {
     const updated = selected.includes(value)
       ? selected.filter((item) => item !== value)
@@ -130,10 +230,50 @@ export default function CategoryListingPage() {
     setSelectedCities(updatedCities);
     setSelectedLocations([]);
     setPage(1);
+
+    if (updatedCities.length === 1) {
+      setManualLocation(updatedCities[0]);
+      updateUrl(search, updatedCities[0]);
+    } else {
+      setManualLocation("");
+      updateUrl(search, "");
+    }
+  };
+
+  const handleLocationToggle = (area) => {
+    const updatedLocations = selectedLocations.includes(area)
+      ? selectedLocations.filter((item) => item !== area)
+      : [...selectedLocations, area];
+
+    setSelectedLocations(updatedLocations);
+    setPage(1);
+
+    if (updatedLocations.length === 1) {
+      setManualLocation(updatedLocations[0]);
+      updateUrl(search, updatedLocations[0]);
+    } else if (selectedCities.length === 1) {
+      setManualLocation(selectedCities[0]);
+      updateUrl(search, selectedCities[0]);
+    } else {
+      setManualLocation("");
+      updateUrl(search, "");
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    updateUrl(search, manualLocation);
+    setPage(1);
   };
 
   const filteredData = useMemo(() => {
     let result = data.filter((item) => {
+      const searchValue = normalize(search);
+      const locationValue = normalize(urlLocation);
+
+      const categoryAliases = categorySearchAliases[dataKey] || [];
+
       const searchText = `
         ${item.name || ""}
         ${item.city || ""}
@@ -144,7 +284,25 @@ export default function CategoryListingPage() {
         ${(item.tags || []).join(" ")}
       `.toLowerCase();
 
-      const matchesSearch = searchText.includes(search.toLowerCase());
+      const locationText = `
+        ${item.city || ""}
+        ${item.location || ""}
+        ${item.state || ""}
+        ${item.category || ""}
+        ${item.address || ""}
+      `.toLowerCase();
+
+      const isCategorySearch =
+        categoryAliases.includes(searchValue) ||
+        normalize(pageInfo.title) === searchValue;
+
+      const matchesSearch =
+        !searchValue || isCategorySearch || searchText.includes(searchValue);
+
+      const matchesUrlLocation =
+        !locationValue ||
+        locationValue === "near me" ||
+        locationText.includes(locationValue);
 
       const matchesCity =
         isOverseas ||
@@ -167,6 +325,7 @@ export default function CategoryListingPage() {
 
       return (
         matchesSearch &&
+        matchesUrlLocation &&
         matchesCity &&
         matchesLocation &&
         matchesMainFilter &&
@@ -197,6 +356,7 @@ export default function CategoryListingPage() {
   }, [
     data,
     search,
+    urlLocation,
     selectedCities,
     selectedLocations,
     selectedMainFilters,
@@ -204,6 +364,8 @@ export default function CategoryListingPage() {
     feeRange,
     sortBy,
     isOverseas,
+    dataKey,
+    pageInfo.title,
   ]);
 
   const totalPages = Math.ceil(filteredData.length / perPage);
@@ -211,6 +373,7 @@ export default function CategoryListingPage() {
 
   const clearFilters = () => {
     setSearch("");
+    setManualLocation("");
     setSelectedCities([]);
     setSelectedLocations([]);
     setSelectedMainFilters([]);
@@ -218,6 +381,7 @@ export default function CategoryListingPage() {
     setSortBy("popularity");
     setFeeRange(pageInfo.feeMax);
     setPage(1);
+    setSearchParams({});
   };
 
   return (
@@ -248,23 +412,59 @@ export default function CategoryListingPage() {
               </div>
 
               {/* Search */}
-              <div className="mb-6">
+              <form onSubmit={handleSearchSubmit} className="mb-6">
                 <p className="mb-2 text-xs font-bold text-gray-700">Search</p>
 
-                <input
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  placeholder={
-                    isOverseas
-                      ? "Search by consultancy or country..."
-                      : "Search by name, city, area..."
-                  }
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#ef233c]"
-                />
-              </div>
+                <div className="flex gap-2">
+                  <input
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder={
+                      isOverseas
+                        ? "Search by consultancy or country..."
+                        : "Search by name, city, area..."
+                    }
+                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#ef233c]"
+                  />
+
+                  <button
+                    type="submit"
+                    className="rounded-md bg-[#071f4d] px-3 py-2 text-xs font-semibold text-white hover:bg-[#ef233c]"
+                  >
+                    Go
+                  </button>
+                </div>
+
+                <p className="mb-2 mt-4 text-xs font-bold text-gray-700">
+                  Manual Location
+                </p>
+
+                <div className="flex gap-2">
+                  <input
+                    value={manualLocation}
+                    onChange={(e) => {
+                      setManualLocation(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Type any city or area..."
+                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#ef233c]"
+                  />
+
+                  <button
+                    type="submit"
+                    className="rounded-md bg-[#ef233c] px-3 py-2 text-xs font-semibold text-white hover:bg-[#d90429]"
+                  >
+                    Apply
+                  </button>
+                </div>
+
+                <p className="mt-2 text-[11px] text-gray-400">
+                  Example: Hyderabad, hyd, KPHB, Ameerpet, Karimnagar
+                </p>
+              </form>
 
               {/* Overseas should show only countries, not city/location */}
               {isOverseas ? (
@@ -294,13 +494,7 @@ export default function CategoryListingPage() {
                       title={`Area / Location in ${selectedCities.join(", ")}`}
                       items={locations}
                       selected={selectedLocations}
-                      onToggle={(item) =>
-                        toggleFilter(
-                          item,
-                          selectedLocations,
-                          setSelectedLocations
-                        )
-                      }
+                      onToggle={handleLocationToggle}
                     />
                   )}
 
@@ -422,6 +616,7 @@ export default function CategoryListingPage() {
 
             {/* Active Filters */}
             {(search ||
+              urlLocation ||
               selectedCities.length > 0 ||
               selectedLocations.length > 0 ||
               selectedMainFilters.length > 0 ||
@@ -429,6 +624,10 @@ export default function CategoryListingPage() {
               <ScrollReveal direction="up" distance={25}>
                 <div className="mb-4 flex flex-wrap gap-2">
                   {search && <ActiveChip label={`Search: ${search}`} />}
+
+                  {urlLocation && (
+                    <ActiveChip label={`Location: ${urlLocation}`} />
+                  )}
 
                   {selectedCities.map((item) => (
                     <ActiveChip key={item} label={`City: ${item}`} />
@@ -550,7 +749,8 @@ export default function CategoryListingPage() {
                       No results found
                     </h3>
                     <p className="mt-2 text-xs text-gray-500">
-                      Try clearing filters or checking your category data.
+                      Try searching with another location like Hyderabad, hyd,
+                      KPHB, Ameerpet, Kukatpally or clear filters.
                     </p>
                     <button
                       onClick={clearFilters}

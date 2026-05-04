@@ -44,17 +44,17 @@ export default function ExploreCategories() {
   const navigate = useNavigate();
 
   return (
-    <section id="explore-categories-section" className="bg-[#f7f8fc] py-20">
-      <div className="mx-auto max-w-[1350px] px-8 text-center">
-        <h2 className="text-[36px] font-extrabold text-[#0b1f4d]">
+    <section id="explore-categories-section" className="bg-[#f7f8fc] py-16">
+      <div className="mx-auto max-w-[1250px] px-6 text-center">
+        <h2 className="text-[30px] font-extrabold text-[#0b1f4d]">
           Explore by Category
         </h2>
 
-        <p className="mt-3 text-[15px] text-gray-500">
+        <p className="mt-3 text-[14px] text-gray-500">
           Choose from institutions and services available in our sample data
         </p>
 
-        <div className="mt-14 grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-12 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((item) => {
             const count = categoryData?.[item.dataKey]?.length || 0;
 
@@ -64,7 +64,7 @@ export default function ExploreCategories() {
                 onClick={() => navigate(`/category/${item.slug}`)}
                 className="cursor-pointer text-center"
               >
-                <div className="mx-auto h-[250px] w-[200px] overflow-hidden rounded-2xl shadow-md transition duration-300 hover:-translate-y-2 hover:shadow-lg">
+                <div className="mx-auto h-[190px] w-[150px] overflow-hidden rounded-2xl shadow-md transition duration-300 hover:-translate-y-2 hover:shadow-lg">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -72,11 +72,11 @@ export default function ExploreCategories() {
                   />
                 </div>
 
-                <h3 className="mt-6 text-[15px] font-bold text-[#0b1f4d]">
+                <h3 className="mt-4 text-[14px] font-bold text-[#0b1f4d]">
                   {item.title}
                 </h3>
 
-                <p className="mt-2 text-[13px] text-gray-500">
+                <p className="mt-1.5 text-[12px] text-gray-500">
                   {count > 0 ? `${count}+ Listings` : "No Listings"}
                 </p>
               </div>
